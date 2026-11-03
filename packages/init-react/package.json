@@ -1,0 +1,45 @@
+{
+  "name": "@janesenaj42/init-react",
+  "version": "1.2.1",
+  "description": "Brings a TypeScript React project up to the Standard: ESLint (flat or legacy), Prettier, typecheck and release scripts.",
+  "type": "module",
+  "bin": {
+    "init-react": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janesenaj42/frontend-dev-config.git",
+    "directory": "packages/init-react"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "commit-and-tag-version": "^13.2.1",
+    "semver": "^7.7.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@janesenaj42/eslint-config": "workspace:*",
+    "@types/node": "^22.19.0",
+    "@types/semver": "^7.7.1",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "tsup": "^8.5.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.2"
+  }
+}

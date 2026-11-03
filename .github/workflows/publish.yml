@@ -1,0 +1,82 @@
+# Releases one package: tags `<package>@<version>` (the version in its package.json on the branch
+# it runs on), publishes it to GitHub Packages and creates the GitHub release. Run it from the
+# Actions tab after the PR that bumped the version (`pnpm release <package> <type>`) is merged. A
+# tag pushed by hand publishes too.
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to release
+        type: choice
+        options: [eslint-config, eslint-config-legacy, init-react]
+  push:
+    tags: ["*@*"]
+permissions:
+  contents: write
+  packages: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      NAME: ${{ inputs.package || '' }}
+      TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          # v5 auto-detects the packageManager field in package.json and tries to
+          # resolve its cache dir immediately, before pnpm is installed below.
+          package-manager-cache: false
+      - run: npm install -g pnpm@12.6.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm run test
+      - name: Work out the package, version and tag
+        id: release
+        run: |
+          name="${NAME:-${TAG%@*}}"
+          version="$(node -p "require('./packages/$name/package.json').version")"
+          if [ -n "$TAG" ] && [ "$TAG" != "$name@$version" ]; then
+            echo "Tag $TAG doesn't match packages/$name/package.json ($version)." >&2
+            exit 1
+          fi
+          case "$version" in *-*) dist=next ;; *) dist=latest ;; esac
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "tag=$name@$version" >> "$GITHUB_OUTPUT"
+          echo "dist=$dist" >> "$GITHUB_OUTPUT"
+      - name: Tag the release
+        if: env.TAG == ''
+        run: |
+          git tag "${{ steps.release.outputs.tag }}"
+          git push origin "${{ steps.release.outputs.tag }}"
+      # A prerelease (1.2.0-rc.0) goes to the "next" dist-tag so it never becomes "latest".
+      - run: pnpm --filter "@janesenaj42/${{ steps.release.outputs.name }}" publish --no-git-checks --tag "${{ steps.release.outputs.dist }}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Notes come from the version's section of the package's CHANGELOG.md; a version without one
+      # gets GitHub's generated notes. A re-run for a version already released stops here, as pnpm
+      # publish skips a version already published.
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          CHANGELOG: packages/${{ steps.release.outputs.name }}/CHANGELOG.md
+          PRERELEASE: ${{ steps.release.outputs.dist == 'next' }}
+        run: |
+          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            echo "The GitHub release $RELEASE_TAG exists already."
+            exit 0
+          fi
+          version="${RELEASE_TAG##*@}"
+          touch "$RUNNER_TEMP/notes.md"
+          if [ -f "$CHANGELOG" ]; then
+            awk -v v="$version" '
+              /^## / { p = index($0, "## [" v "]") == 1 || index($0, "## " v " ") == 1; next }
+              p
+            ' "$CHANGELOG" > "$RUNNER_TEMP/notes.md"
+          fi
+          if [ -s "$RUNNER_TEMP/notes.md" ]; then notes=(--notes-file "$RUNNER_TEMP/notes.md"); else notes=(--generate-notes); fi
+          gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" --prerelease="$PRERELEASE" "${notes[@]}"

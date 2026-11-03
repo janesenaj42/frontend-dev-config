@@ -1,0 +1,40 @@
+{
+  "name": "@janesenaj42/eslint-config-legacy",
+  "version": "1.0.0",
+  "description": "The org's ESLint rules for ESLint 8 (.eslintrc), for projects not yet on flat config.",
+  "main": "./index.cjs",
+  "exports": {
+    ".": "./index.cjs"
+  },
+  "files": [
+    "index.cjs"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janesenaj42/frontend-dev-config.git",
+    "directory": "packages/eslint-config-legacy"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "peerDependencies": {
+    "eslint": "^8.57.0",
+    "typescript": ">=4.8.4 <6.1.0"
+  },
+  "dependencies": {
+    "@rushstack/eslint-patch": "^1.16.1",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^18.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-sonarjs": "^0.18.0"
+  }
+}
