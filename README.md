@@ -151,6 +151,33 @@ Your config file extends the package; anything you write after it wins.
 
 ## Reference
 
+### What `init-react` changes
+
+Run `npx @janesenaj42/init-react --dry-run` to see the exact list for your project. A tool named
+in `--skip` is left out.
+
+| Tool        | Files written                                                                                                 | `package.json` changes                                                                                                                                                                                                                                    |
+| ----------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Registry    | `.npmrc`: one line, `@janesenaj42:registry=<url>`, never a token. Yarn Berry: a warning to edit `.yarnrc.yml` | none                                                                                                                                                                                                                                                      |
+| ESLint 9+   | `eslint.config.js` (`.mjs` if the project is not ESM) that spreads the Standard                               | devDependencies `eslint`, `@eslint/js`, `@janesenaj42/eslint-config`; script `lint` = `eslint .`                                                                                                                                                          |
+| ESLint 8    | `.eslintrc.json` that extends the legacy Standard; deletes an unedited `eslint.config.*`                      | devDependencies `eslint`, `@janesenaj42/eslint-config-legacy`; script `lint` = `eslint --ext .js,.jsx,.ts,.tsx .`                                                                                                                                         |
+| Prettier    | `.prettierignore` (`CHANGELOG.md` and lockfiles). No Prettier config: the Standard uses the defaults          | devDependency `prettier`; scripts `format` = `prettier --write .`, `format:check` = `prettier --check .`                                                                                                                                                  |
+| Typecheck   | none                                                                                                          | script `typecheck` = `tsc --noEmit`, or `tsc -b` when `tsconfig.json` uses project references                                                                                                                                                             |
+| Release     | none                                                                                                          | devDependency `@janesenaj42/init-react`; scripts `release:patch`, `:minor`, `:major`, `:alpha`, `:beta`, `:rc` = `init-react release <type>`; key `init-react` with `releaseBranch` (default `main`) and `tagPrefix` (`v`, or `<folder>@` in a subfolder) |
+| Script docs | A `## Scripts` block listing the scripts above, in `CONTRIBUTING.md` if the project has one, else `README.md` | none                                                                                                                                                                                                                                                      |
+
+`--skip` and `--registry` are saved under the `init-react` key in `package.json`, so later runs
+reuse them.
+
+What it leaves alone:
+
+- Your own ESLint or Prettier config is kept, and the run says so. `--force=eslint,prettier`
+  replaces it.
+- A file it wrote starts with a `Managed by` line holding a hash. Edit the file and it becomes
+  yours: later runs never touch it.
+- An unedited Vite scaffold default it replaces (Vite's ESLint dependencies, `.oxlintrc.json`,
+  the `oxlint` dependency) is deleted, and the run lists the deletion.
+
 ### CLI options
 
 `npx @janesenaj42/init-react --help` prints these.
